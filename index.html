@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>雪球大亂鬥：烏龜與兔子的財富賽跑</title>
+    <style>
+        :root {
+            --bg-color: #f0f9ff;
+            --track-bg: #e2e8f0;
+            --turtle-color: #22c55e;
+            --rabbit-color: #f97316;
+            --principal-color: #64748b;
+            --interest-color: #fbbf24;
+            --text-main: #0f172a;
+            --primary-color: #2563eb;
+            --lead-glow: #fbbf24; /* 領先者的高亮顏色 */
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 10px;
+            text-align: center;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        header h1 { margin: 0; font-size: 1.2rem; color: #1e40af; }
+        header p { margin: 2px 0 0; font-size: 0.75rem; color: #64748b; }
+
+        #racing-arena {
+            flex-grow: 1;
+            min-height: 0; 
+            position: relative;
+            padding: 100px 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+
+        .track {
+            height: 70px; 
+            background: rgba(255,255,255,0.4);
+            border-radius: 40px;
+            position: relative;
+            border: 2px dashed #cbd5e1;
+            display: flex;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .track-label {
+            position: absolute;
+            bottom: -28px; 
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            color: #334155;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 5;
+        }
+
+        .snowball-container {
+            position: absolute;
+            left: 0;
+            bottom: 50%;
+            transform: translateY(50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: left 1s linear; 
+            z-index: 20;
+        }
+
+        .snowball {
+            width: 25px; /* 初始值調小 */
+            height: 25px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 10px rgba(255,255,255,0.8), inset -3px -3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: box-shadow 0.3s ease, width 1s, height 1s;
+        }
+
+        /* 領先者的高亮效果 */
+        .snowball-container.leading .snowball {
+            box-shadow: 0 0 25px var(--lead-glow), 0 0 45px rgba(251, 191, 36, 0.4);
+            border: 2px solid var(--lead-glow);
+            animation: pulse-lead 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-lead {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        .snowball-core {
+            background: var(--principal-color);
+            border-radius: 50%;
+            position: absolute;
+            transition: width 1s, height 1s;
+        }
+
+        .snowball-aura {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--interest-color) 0%, transparent 70%);
+            opacity: 0.6;
+            position: absolute;
+        }
+
+        /* 領先者的標籤強化 */
+        .snowball-label {
+            position: absolute;
+            bottom: 100%;
+            margin-bottom: 12px;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            font-weight: 900;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 4px 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            color: var(--text-main);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,1);
+            z-index: 30;
+            transition: all 0.3s ease;
+        }
+
+        .leading .snowball-label {
+            background: var(--lead-glow);
+            color: #451a03;
+            transform: scale(1.1);
+            box-shadow: 0 6px 15px rgba(251, 191, 36, 0.4);
+        }
+
+        .snowball-label small { 
+            display: block; 
+            font-size: 0.65rem; 
+            color: #64748b; 
+            font-weight: bold;
+            margin-top: 2px;
+            transition: color 0.3s;
+        }
+
+        .leading .snowball-label small { color: #92400e; }
+
+        .timeline {
+            position: absolute;
+            bottom: 8px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #64748b;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 5px;
+            font-weight: bold;
+        }
+
+        .controls {
+            background: white;
+            padding: 15px 20px calc(15px + var(--safe-area-bottom));
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.1);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .input-group { margin-bottom: 8px; }
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .input-label { font-size: 0.8rem; font-weight: bold; }
+        .input-value { font-family: monospace; color: var(--primary-color); font-weight: 800; font-size: 0.9rem; }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border: 4px solid var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:active { transform: scale(0.95); }
+        #start-btn { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); }
+        #reset-btn { background: #f1f5f9; color: #475569; }
+
+        #summary-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 25px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>雪球大亂鬥</h1>
+        <p>「早開始」vs「晚起步」的複利賽跑</p>
+    </header>
+
+    <div id="racing-arena">
+        <div class="track">
+            <div class="track-label">🐢 烏龜 (20歲開始)</div>
+            <div id="turtle-snowball" class="snowball-container">
+                <div class="snowball-label">
+                    <span id="turtle-asset">$0</span>
+                    <small>年齡: <span id="turtle-age-display">20</span> 歲</small>
+                </div>
+                <div class="snowball">
+                    <div class="snowball-aura"></div>
+                    <div class="snowball-core" id="turtle-core"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="track">
+            <div class="track-label">🐰 兔子 (30歲開始)</div>
+            <div id="rabbit-snowball" class="snowball-container">
+                <div class="snowball-label">
+                    <span id="rabbit-asset">$0</span>
+                    <small>年齡: <span id="rabbit-age-display">20</span> 歲</small>
+                </div>
+                <div class="snowball">
+                    <div class="snowball-aura"></div>
+                    <div class="snowball-core" id="rabbit-core"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timeline">
+            <span>20歲</span>
+            <span>30歲</span>
+            <span>40歲</span>
+            <span>50歲</span>
+            <span>60歲</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <div class="input-row">
+                <span class="input-label">🐢 烏龜月投</span>
+                <span class="input-value">$<span id="val-turtle">3,000</span></span>
+            </div>
+            <input type="range" id="in-turtle" min="1000" max="20000" step="500" value="3000">
+        </div>
+
+        <div class="input-group">
+            <div class="input-row">
+                <span class="input-label">🐰 兔子月投</span>
+                <span class="input-value">$<span id="val-rabbit">8,000</span></span>
+            </div>
+            <input type="range" id="in-rabbit" min="1000" max="20000" step="500" value="8000">
+        </div>
+
+        <div class="input-group">
+            <div class="input-row">
+                <span class="input-label">📈 年報酬率</span>
+                <span class="input-value"><span id="val-roi">7</span>%</span>
+            </div>
+            <input type="range" id="in-roi" min="1" max="15" step="0.5" value="7">
+        </div>
+
+        <div class="btn-group">
+            <button id="reset-btn">重設</button>
+            <button id="start-btn">開始比賽！</button>
+        </div>
+    </div>
+
+    <div id="summary-overlay">
+        <div class="summary-card">
+            <h2 id="winner-text" style="font-size: 1.2rem;">賽跑結果</h2>
+            <div id="summary-details"></div>
+            <button style="width:100%; margin-top:15px; background:#2563eb; color:white; border:none; padding:14px; border-radius:12px; font-weight:bold;" onclick="closeSummary()">返回調整</button>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            currentAge: 20,
+            maxAge: 60,
+            turtle: { asset: 0, principal: 0, interest: 0 },
+            rabbit: { asset: 0, principal: 0, interest: 0 },
+            isRunning: false,
+            timer: null
+        };
+
+        const elements = {
+            startBtn: document.getElementById('start-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            turtleSnowball: document.getElementById('turtle-snowball'),
+            rabbitSnowball: document.getElementById('rabbit-snowball'),
+            turtleCore: document.getElementById('turtle-core'),
+            rabbitCore: document.getElementById('rabbit-core'),
+            turtleAsset: document.getElementById('turtle-asset'),
+            rabbitAsset: document.getElementById('rabbit-asset'),
+            turtleAgeDisp: document.getElementById('turtle-age-display'),
+            rabbitAgeDisp: document.getElementById('rabbit-age-display'),
+            summaryOverlay: document.getElementById('summary-overlay')
+        };
+
+        function setupInputs() {
+            const inputs = ['turtle', 'rabbit', 'roi'];
+            inputs.forEach(id => {
+                const el = document.getElementById(`in-${id}`);
+                const val = document.getElementById(`val-${id}`);
+                el.oninput = () => {
+                    val.innerText = parseInt(el.value).toLocaleString();
+                    if (!state.isRunning) resetRace();
+                };
+            });
+        }
+
+        function resetRace() {
+            clearInterval(state.timer);
+            state.currentAge = 20;
+            state.isRunning = false;
+            state.turtle = { asset: 0, principal: 0, interest: 0 };
+            state.rabbit = { asset: 0, principal: 0, interest: 0 };
+            updateVisuals();
+            elements.startBtn.innerText = "開始比賽！";
+        }
+
+        function startRace() {
+            if (state.isRunning) {
+                clearInterval(state.timer);
+                state.isRunning = false;
+                elements.startBtn.innerText = "繼續比賽";
+                return;
+            }
+            state.isRunning = true;
+            elements.startBtn.innerText = "暫停";
+            const monthlyROI = parseFloat(document.getElementById('in-roi').value) / 100 / 12;
+            const turtleMonthly = parseFloat(document.getElementById('in-turtle').value);
+            const rabbitMonthly = parseFloat(document.getElementById('in-rabbit').value);
+            state.timer = setInterval(() => {
+                if (state.currentAge >= state.maxAge) {
+                    finishRace();
+                    return;
+                }
+                for(let m=0; m<12; m++) {
+                    state.turtle.principal += turtleMonthly;
+                    state.turtle.asset = (state.turtle.asset + turtleMonthly) * (1 + monthlyROI);
+                    state.turtle.interest = state.turtle.asset - state.turtle.principal;
+                    if (state.currentAge >= 30) {
+                        state.rabbit.principal += rabbitMonthly;
+                        state.rabbit.asset = (state.rabbit.asset + rabbitMonthly) * (1 + monthlyROI);
+                        state.rabbit.interest = state.rabbit.asset - state.rabbit.principal;
+                    }
+                }
+                state.currentAge += 1;
+                updateVisuals();
+            }, 1000); 
+        }
+
+        function updateVisuals() {
+            const progress = (state.currentAge - 20) / (state.maxAge - 20);
+            const arenaWidth = document.getElementById('racing-arena').offsetWidth - 100;
+            elements.turtleSnowball.style.left = `${progress * arenaWidth}px`;
+            elements.rabbitSnowball.style.left = `${progress * arenaWidth}px`;
+            elements.turtleAsset.innerText = `$${Math.round(state.turtle.asset).toLocaleString()}`;
+            elements.rabbitAsset.innerText = `$${Math.round(state.rabbit.asset).toLocaleString()}`;
+            elements.turtleAgeDisp.innerText = state.currentAge;
+            elements.rabbitAgeDisp.innerText = state.currentAge;
+
+            // 領先者判定
+            if (state.turtle.asset > 0 || state.rabbit.asset > 0) {
+                if (state.turtle.asset > state.rabbit.asset) {
+                    elements.turtleSnowball.classList.add('leading');
+                    elements.rabbitSnowball.classList.remove('leading');
+                } else if (state.rabbit.asset > state.turtle.asset) {
+                    elements.rabbitSnowball.classList.add('leading');
+                    elements.turtleSnowball.classList.remove('leading');
+                }
+            } else {
+                elements.turtleSnowball.classList.remove('leading');
+                elements.rabbitSnowball.classList.remove('leading');
+            }
+
+            // --- 雪球體積優化：縮小為原本的 70% ---
+            const scaleBase = 18; // 25 * 0.7 ≒ 18
+            const multiplier = 0.77; // 1.1 * 0.7 = 0.77
+            const turtleSize = Math.max(12, Math.pow(state.turtle.asset, 1/3) * multiplier + scaleBase);
+            const rabbitSize = Math.max(12, Math.pow(state.rabbit.asset, 1/3) * multiplier + scaleBase);
+            // ------------------------------------
+            
+            updateSnowball('turtle', turtleSize, state.turtle);
+            updateSnowball('rabbit', rabbitSize, state.rabbit);
+        }
+
+        function updateSnowball(who, size, data) {
+            const snowball = document.querySelector(`#${who}-snowball .snowball`);
+            snowball.style.width = `${size}px`;
+            snowball.style.height = `${size}px`;
+            const core = document.getElementById(`${who}-core`);
+            const principalRatio = data.asset > 0 ? (data.principal / data.asset) : 1;
+            const coreSize = size * Math.sqrt(principalRatio);
+            core.style.width = `${coreSize}px`;
+            core.style.height = `${coreSize}px`;
+        }
+
+        function finishRace() {
+            clearInterval(state.timer);
+            state.isRunning = false;
+            const turtleWin = state.turtle.asset > state.rabbit.asset;
+            document.getElementById('winner-text').innerText = turtleWin ? "🐢 烏龜勝出！時間贏過了大錢" : "🐰 兔子勝出！本金填補了空缺";
+            document.getElementById('summary-details').innerHTML = `
+                <div class="result-row"><span>烏龜資產</span><b>$${Math.round(state.turtle.asset).toLocaleString()}</b></div>
+                <div class="result-row"><span>兔子資產</span><b>$${Math.round(state.rabbit.asset).toLocaleString()}</b></div>
+            `;
+            elements.summaryOverlay.style.display = "flex";
+        }
+
+        function closeSummary() {
+            elements.summaryOverlay.style.display = "none";
+            resetRace();
+        }
+
+        elements.startBtn.onclick = startRace;
+        elements.resetBtn.onclick = resetRace;
+        setupInputs();
+        window.onload = resetRace;
+    </script>
+</body>
+</html>
